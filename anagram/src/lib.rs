@@ -31,7 +31,7 @@ fn is_anagram(input: String, mut possible: String) -> bool {
                 }
             }
         }
-        return true;
+        true
     } else {
         false
     }
