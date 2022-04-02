@@ -6,7 +6,7 @@ pub fn anagrams_for<'a, 'b>(word: &'a str, possible_anagrams: &[&'b str]) -> Has
     let input: String = word.to_lowercase();
 
     for possible_match in possible_anagrams {
-        if is_anagram(&input, possible_match.to_lowercase()) {
+        if is_anagram(input.clone(), possible_match.to_lowercase().clone()) {
             output.insert(possible_match);
         }
     }
@@ -14,24 +14,23 @@ pub fn anagrams_for<'a, 'b>(word: &'a str, possible_anagrams: &[&'b str]) -> Has
     output
 }
 
-fn is_anagram(input: &String, possible: String) -> bool {
-    let mut copy = possible.clone();
-
-    if input.len() == copy.len() {
-        if *input != copy {
-            for c in input.graphemes(true) {
-                match copy.find(c) {
+fn is_anagram(input: String, mut possible: String) -> bool {
+    if input.len() == possible.len() {
+        if input.to_owned() != possible {
+            for c in input.grapheme_indices(true) {
+                match possible.find(c.1) {
                     Some(position) => {
-                        copy.remove(position);
+                        possible.remove(position);
                     }
                     None => {
                         return false;
                     }
                 }
-                return true;
             }
+            return true;
         }
         return false;
+    } else {
+        false
     }
-    false
 }
