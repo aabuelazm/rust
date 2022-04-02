@@ -15,21 +15,23 @@ pub fn anagrams_for<'a, 'b>(word: &'a str, possible_anagrams: &[&'b str]) -> Has
 }
 
 fn is_anagram(input: String, mut possible: String) -> bool {
-    if input.len() == possible.len() {
-        if input.to_owned() != possible {
-            for c in input.grapheme_indices(true) {
-                match possible.find(c.1) {
-                    Some(position) => {
-                        possible.remove(position);
-                    }
-                    None => {
-                        return false;
-                    }
+    // An anagram must be the same size as the original word and a word is not an anagram of
+    // itself.
+    if input.len() == possible.len() && input.to_owned() != possible {
+        // We are attempting to preserve characters that use grapheme clusters (aka are complex
+        // unicode characters that use multiple bytes).
+        // For technical details: https://unicode.org/reports/tr29/
+        for c in input.graphemes(true) {
+            match possible.find(c) {
+                Some(position) => {
+                    possible.remove(position);
+                }
+                None => {
+                    return false;
                 }
             }
-            return true;
         }
-        return false;
+        return true;
     } else {
         false
     }
