@@ -46,65 +46,79 @@ pub mod hand {
                 return Err("Hands can only contain 5 cards");
             }
 
+            cards.sort_unstable_by(|x, y| x.get_rank().cmp(&y.get_rank()));
+
             Ok(Hand { cards })
-        }
-    }
-
-    impl fmt::Display for Hand {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            if self.cards.len() != 5 {
-                return Err(fmt::Error);
-            }
-
-            for i in 0..4 {
-                write!(f, "{} ", self.cards[i]);
-            }
-
-            write!(f, "{}", self.cards[4])
         }
     }
 
     impl Hand {
         pub fn highest_rank(&self) -> Rank {
-            let mut highest = Rank::Two;
-
-            for &card in self.cards.iter() {
-                if card.rank > highest {
-                    highest = card.rank;
-                }
-            }
-
-            highest
+            self.cards.last().unwrap().get_rank()
         }
 
         pub fn is_straight(&self) -> (bool, Rank) {
-            // let highest = self.highest_rank();
+            let highest = self.highest_rank();
 
-            unimplemented!("Not yet")
-        }
-
-        pub fn is_flush(
-            &self,
-        ) -> (
-            bool,
-            Option<Rank>,
-            Option<Rank>,
-            Option<Rank>,
-            Option<Rank>,
-            Option<Rank>,
-        ) {
-            unimplemented!("Not yet")
-        }
-
-        pub fn is_straight_flush(&self) -> (bool, Rank) {
-            if self.is_straight().0 && self.is_flush().0 {
-                (true, self.highest_rank())
-            } else {
-                (false, Rank::Two)
+            // checking for Five-High Straight
+            if highest == Rank::Ace {
+                for i in 0..4 {
+                    if self.cards[i].get_rank() as u8 != Rank::Two as u8 + i as u8 {
+                        break;
+                    } else if i == 4 {
+                        return (true, Rank::Five);
+                    }
+                }
             }
+
+            for i in 0..4 {
+                if self.cards[3 - i].get_rank() as u8 != highest as u8 - i as u8 {
+                    break;
+                } else if i == 4 {
+                    return (true, highest);
+                }
+            }
+
+            (false, Rank::Two)
+        }
+
+        pub fn is_flush(&self) -> bool {
+            let mut iterator = self.cards.iter();
+            let sample = iterator.next().unwrap().get_suit();
+
+            while let Some(test) = iterator.next() {
+                if test.get_suit() != sample {
+                    return false;
+                }
+            }
+
+            true
+        }
+
+        // To be done next
+        fn cards_left_value(&self, i: usize) -> u16 {
+            let mut sum = 0;
+
+            if i == 5 {
+                let cr = self.cards[4].get_rank() as u8 - 7;
+                sum += ((((cr as f64).powi(4) + (cr as f64).powi(2)) / 24.0)
+                    + ((cr as f64).powi(3) + (cr as f64) / 12.0)) as u16;
+            }
+
+            sum
         }
 
         pub fn evaluate(&self) -> u16 {
+            match self.is_flush() {
+                true => match self.is_straight() {
+                    (true, r) => 7450 + r as u16,
+                    (false, _) => self.cards_left_value(5),
+                },
+                false => {
+                    5;
+                    4
+                }
+            };
             unimplemented!("We'll get there")
         }
     }

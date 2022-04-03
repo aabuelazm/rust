@@ -1,7 +1,7 @@
 pub mod card {
-    pub use std::fmt;
     pub use std::str::FromStr;
 
+    #[repr(u8)]
     #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
     pub enum Rank {
         Two = 2,
@@ -19,19 +19,6 @@ pub mod card {
         Ace,
     }
 
-    impl fmt::Display for Rank {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            match self {
-                x if *x as u8 <= 10 => write!(f, "{}", *x as u8),
-                Rank::Jack => write!(f, "J"),
-                Rank::Queen => write!(f, "Q"),
-                Rank::King => write!(f, "K"),
-                Rank::Ace => write!(f, "A"),
-                _ => Err(fmt::Error),
-            }
-        }
-    }
-
     #[derive(Debug, PartialEq, Eq, Clone, Copy)]
     pub enum Suit {
         Hearts,
@@ -40,21 +27,10 @@ pub mod card {
         Spades,
     }
 
-    impl fmt::Display for Suit {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            match self {
-                Suit::Hearts => write!(f, "H"),
-                Suit::Diamonds => write!(f, "D"),
-                Suit::Clubs => write!(f, "C"),
-                Suit::Spades => write!(f, "S"),
-            }
-        }
-    }
-
     // Implementing the Card struct with method to parse through str to get card details
     #[derive(Debug, PartialEq, Eq, Clone, Copy)]
     pub struct Card {
-        pub(in crate) rank: Rank,
+        rank: Rank,
         suit: Suit,
     }
 
@@ -103,9 +79,13 @@ pub mod card {
         } //from_str
     } // FromStr
 
-    impl fmt::Display for Card {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            write!(f, "{}{}", self.rank, self.suit)
+    impl Card {
+        pub fn get_rank(&self) -> Rank {
+            return self.rank;
+        }
+
+        pub fn get_suit(&self) -> Suit {
+            return self.suit;
         }
     }
 }
