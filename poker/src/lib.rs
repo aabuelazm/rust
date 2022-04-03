@@ -14,9 +14,9 @@ pub fn winning_hands<'a>(hands: &[&'a str]) -> Vec<&'a str> {
     let winning = sorted_hands.pop().unwrap();
     let mut output = vec![winning.0];
 
-    let winning_hands = sorted_hands.iter().filter(|a| a.1 == winning.1);
+    let winning_hands = sorted_hands.iter().rev().take_while(|a| a.1 == winning.1);
     for h in winning_hands {
-        output.push(h.0)
+        output.push(h.0);
     }
 
     output
