@@ -182,7 +182,24 @@ pub mod hand {
                 (true, (false, _)) => return score - 322 - self.high_card(self.highest_rank()),
                 (false, (true, r)) => return score + (r as u16) - 1599 - 12,
                 (false, (false, _)) => match self.find_rank_patterns() {
-                    Some(RankHandRanks::FourOfAKind) => {}
+                    Some(RankHandRanks::FourOfAKind) => {
+                        let mut hashed = HashSet::new();
+                        for c in self.cards.iter() {
+                            if !(hashed.insert(c.get_rank())) {
+                                break;
+                            }
+                        }
+
+                        // match hashed.len() {
+                        //     1 => {
+                        //         return score
+                        //             - 10
+                        //             - (12 * (12 - (self.cards[0].get_rank() as u16)))
+                        //             - self.cards[4].get_rank() as u16
+                        //     }
+                        //     _ => {}
+                        // }
+                    }
                     Some(RankHandRanks::FullHouse) => {}
                     Some(RankHandRanks::ThreeOfAKind) => {}
                     Some(RankHandRanks::TwoPair) => {}
