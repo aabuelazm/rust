@@ -1,10 +1,10 @@
 pub mod card {
     pub use std::str::FromStr;
 
-    #[repr(u8)]
-    #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
+    #[repr(u16)]
+    #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash)]
     pub enum Rank {
-        Two = 2,
+        Two = 0,
         Three,
         Four,
         Five,

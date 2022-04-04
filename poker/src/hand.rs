@@ -1,6 +1,15 @@
 pub mod hand {
     use crate::card::card::*;
     use std::cmp::Ordering;
+    use std::collections::HashSet;
+
+    enum RankHandRanks {
+        FourOfAKind,
+        FullHouse,
+        ThreeOfAKind,
+        TwoPair,
+        OnePair,
+    }
 
     // Implementing the Hand struct with methods to parse and evaluate a vector of cards and their
     // total score
@@ -53,17 +62,17 @@ pub mod hand {
     }
 
     impl Hand {
-        pub fn highest_rank(&self) -> Rank {
+        fn highest_rank(&self) -> Rank {
             self.cards.last().unwrap().get_rank()
         }
 
-        pub fn is_straight(&self) -> (bool, Rank) {
+        fn is_straight(&self) -> (bool, Rank) {
             let highest = self.highest_rank();
 
             // checking for Five-High Straight
             if highest == Rank::Ace {
                 for i in 0..4 {
-                    if self.cards[i].get_rank() as u8 != Rank::Two as u8 + i as u8 {
+                    if self.cards[i].get_rank() as u16 != Rank::Two as u16 + i as u16 {
                         break;
                     } else if i == 4 {
                         return (true, Rank::Five);
@@ -72,17 +81,17 @@ pub mod hand {
             }
 
             for i in 0..4 {
-                if self.cards[3 - i].get_rank() as u8 != highest as u8 - i as u8 {
+                if self.cards[3 - i].get_rank() as u16 != highest as u16 - i as u16 {
                     break;
                 } else if i == 4 {
                     return (true, highest);
                 }
             }
 
-            (false, Rank::Two)
+            (false, highest)
         }
 
-        pub fn is_flush(&self) -> bool {
+        fn is_flush(&self) -> bool {
             let mut iterator = self.cards.iter();
             let sample = iterator.next().unwrap().get_suit();
 
@@ -95,31 +104,94 @@ pub mod hand {
             true
         }
 
-        // To be done next
-        fn cards_left_value(&self, i: usize) -> u16 {
-            let mut sum = 0;
+        fn high_card(&self, high_rank: Rank) -> u16 {
+            let random_array = [493, 164, 120, 84, 56, 35, 20, 10, 4, 1, 0];
+            let mut result = 0;
+            let mut last_rank = 12 - high_rank as u16 as usize;
 
-            if i == 5 {
-                let cr = self.cards[4].get_rank() as u8 - 7;
-                sum += ((((cr as f64).powi(4) + (cr as f64).powi(2)) / 24.0)
-                    + ((cr as f64).powi(3) + (cr as f64) / 12.0)) as u16;
+            for i in 0..last_rank {
+                result += random_array[i];
             }
 
-            sum
+            for i in 1..=4 {
+                last_rank = 12 - last_rank - self.cards[i].get_rank() as u16 as usize;
+                for j in i..last_rank {
+                    result += random_array[j];
+                }
+            }
+
+            result
+        }
+
+        fn find_rank_patterns(&self) -> Option<RankHandRanks> {
+            let mut hashed_ranks = HashSet::new();
+
+            for c in self.cards.iter() {
+                hashed_ranks.insert(c.get_rank());
+            }
+
+            match hashed_ranks.len() {
+                2 => {
+                    let test_rank = self.cards[0].get_rank();
+                    let count_this = self.cards.iter().take_while(|x| x.get_rank() == test_rank);
+
+                    match count_this.count() {
+                        1 | 4 => Some(RankHandRanks::FourOfAKind),
+                        2 | 3 => Some(RankHandRanks::FullHouse),
+                        _ => panic!("How??"),
+                    }
+                }
+
+                3 => {
+                    let test_rank = self.cards[0].get_rank();
+                    let count_this = self.cards.iter().take_while(|x| x.get_rank() == test_rank);
+
+                    match count_this.count() {
+                        3 => Some(RankHandRanks::ThreeOfAKind),
+                        2 => Some(RankHandRanks::TwoPair),
+
+                        1 => {
+                            let test2 = self.cards[4].get_rank();
+                            let count2 = self
+                                .cards
+                                .iter()
+                                .rev()
+                                .take_while(|x| x.get_rank() == test2);
+
+                            match count2.count() {
+                                1 | 3 => Some(RankHandRanks::ThreeOfAKind),
+                                2 => Some(RankHandRanks::TwoPair),
+                                _ => panic!("How??"),
+                            }
+                        }
+
+                        _ => panic!("How??"),
+                    }
+                }
+
+                4 => Some(RankHandRanks::OnePair),
+                _ => None,
+            }
         }
 
         pub fn evaluate(&self) -> u16 {
-            match self.is_flush() {
-                true => match self.is_straight() {
-                    (true, r) => 7450 + r as u16,
-                    (false, _) => self.cards_left_value(5),
+            let score = 7462;
+
+            match (self.is_flush(), self.is_straight()) {
+                (true, (true, r)) => return score + (r as u16) - 12,
+                (true, (false, _)) => return score - 322 - self.high_card(self.highest_rank()),
+                (false, (true, r)) => return score + (r as u16) - 1599 - 12,
+                (false, (false, _)) => match self.find_rank_patterns() {
+                    Some(RankHandRanks::FourOfAKind) => {}
+                    Some(RankHandRanks::FullHouse) => {}
+                    Some(RankHandRanks::ThreeOfAKind) => {}
+                    Some(RankHandRanks::TwoPair) => {}
+                    Some(RankHandRanks::OnePair) => {}
+                    None => return score - 6185 - self.high_card(self.highest_rank()),
                 },
-                false => {
-                    5;
-                    4
-                }
             };
-            unimplemented!("We'll get there")
+
+            score
         }
     }
 }
