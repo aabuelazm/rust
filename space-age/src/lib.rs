@@ -23,7 +23,23 @@ impl Planet {
 }
 
 pub struct Earth {
-    yrs_in_earth_yrs: f64,
+    planet: Planet,
+}
+
+impl Earth {
+    pub fn years_during(&self, d: &Duration) -> f64 {
+        self.planet.years_during(d)
+    }
+}
+
+impl Default for Earth {
+    fn default() -> Self {
+        Earth {
+            planet: Planet {
+                yrs_in_earth_yrs: 1.0,
+            },
+        }
+    }
 }
 
 // pub struct Mercury;
